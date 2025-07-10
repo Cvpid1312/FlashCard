@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 from tkinter import messagebox, filedialog
+from tkinter import ttk
 
 class Card:
     def __init__(self, question, answer):
@@ -28,13 +29,18 @@ root = tk.Tk()
 root.geometry("500x450")
 root.title("Flash Card Game")
 
-card_label = tk.Label(root, text="Let's get smart!")
+card_label = ttk.Label(root, text="Let's get smart!")
 card_label.pack(pady=20, padx=45)
 
-user_input = tk.Entry(root)
+user_input = ttk.Entry(root)
+user_input.bind("<Return>", lambda event: check_answer())
 
 current_card_index = 0
 score = 0
+highscore1 = None
+highscore2 = None
+highscore3 = None
+
 
 def show_card():
 
@@ -42,15 +48,27 @@ def show_card():
 
     card_label.config(text=cards[current_card_index].question)
     user_input.pack()
-    check_button.pack(pady=20)
+    user_input.focus_set()
+    check_button.pack(pady=20, side="right")
+    show_button.pack(pady=20, side="left")
 
 def show_result():
 
     card_label.config(text=f"You scored {score}/10. \n\nWould you like to try again?")
-    check_button.pack_forget()
     start_button.config(text="TRY AGAIN")
     start_button.pack(pady=40, padx=50)
+
+def show_answer():
+
+    global current_card_index
+
+    answer = cards[current_card_index].answer
+    card_label.config(text=f"The right answer is {answer}.")
+    check_button.config(text="next", command=next_question)
     user_input.pack_forget()
+    show_button.config(state="disabled")
+
+    current_card_index += 1
 
 
 def check_answer():
@@ -70,10 +88,19 @@ def check_answer():
         messagebox.showinfo("FALSE", "Nope, better luck next time...")
     
     current_card_index += 1
+    next_question()
+
+
+def next_question():
 
     if current_card_index < len(cards):
+        show_button.config(state="normal")
         show_card()
     else:
+        user_input.pack_forget()
+        check_button.pack_forget()
+        card_label.config(text="")
+
         if score == 10:
             messagebox.showinfo("PERFECT", "You fucking nailed it mate!!!!")
             show_result()
@@ -96,8 +123,9 @@ def start_game():
 
 
     
-check_button = tk.Button(root, text="check", command=check_answer)
-start_button = tk.Button(root, text="START", command= start_game)
+check_button = ttk.Button(root, text="check", command=check_answer)
+start_button = ttk.Button(root, text="START", command= start_game)
+show_button = ttk.Button(root, text="reveal answer", command=show_answer)
 
 start_button.pack(pady=40, padx=50, anchor="center")
 
