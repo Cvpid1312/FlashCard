@@ -8,7 +8,7 @@ class Card:
         self.question = question
         self.answer = answer
 
-cards = [
+cards1 = [
     Card("What is the capital of France?", "Paris"),
     Card("What is 2 + 2?", "4"),
     Card("What is the largest planet in our solar system?", "Jupiter"),
@@ -21,8 +21,27 @@ cards = [
     Card("What is the name of our closest star besides the Sun?", "Proxima Centauri")
 ]
 
-    
+cards2 = [
+    Card("Who is the father of all new chool rappers?","Lil B"),
+    Card("Who is the the rapper that had the biggest potential?","XXX Tentacion"),
+    Card("Who is the sexiest rapper?", "Young Thug"),
+    Card("Which is the most popular DAW?", "FL Studio"),
+]
 
+class Deck:
+    def __init__(self, title, category, cards):
+        self.title = title
+        self.category = category
+        self.cards = cards
+
+
+deck1 = Deck("Rando", None, cards1)
+deck2 = Deck("Rap", "music", cards2)
+
+    
+class DeckManager:
+    def __init__(self):
+        self.decks = [deck1, deck2]
 
 
 root = tk.Tk()
@@ -37,9 +56,8 @@ user_input.bind("<Return>", lambda event: check_answer())
 
 current_card_index = 0
 score = 0
-highscore1 = None
-highscore2 = None
-highscore3 = None
+highscore = 0
+cards = None
 
 
 def show_card():
@@ -54,16 +72,23 @@ def show_card():
 
 def show_result():
 
+    global highscore
+
     card_label.config(text=f"You scored {score}/10. \n\nWould you like to try again?")
-    start_button.config(text="TRY AGAIN")
+    start_button.config(text="TRY AGAIN", state="normal")
     start_button.pack(pady=40, padx=50)
+    if score > highscore:
+        highscore = score
+        messagebox.showinfo("NEW HIGHSCORE", "You just set a new highscore, well done!")
+    highscore_label = ttk.Label(text=f"Highscore: {highscore}")
+    highscore_label.pack(pady=34, side="bottom")
 
 def show_answer():
 
     global current_card_index
 
     answer = cards[current_card_index].answer
-    card_label.config(text=f"The right answer is {answer}.")
+    card_label.config(text=f"The answer is {answer}.")
     check_button.config(text="next", command=next_question)
     user_input.pack_forget()
     show_button.config(state="disabled")
@@ -109,12 +134,27 @@ def next_question():
             show_result()
 
 
+def selection(*args):
+    
+    global cards
+    
+    title = selected_deck.get()
+    for deck in manager.decks:
+        if title == deck.title:
+            cards = deck.cards
+
+    start_button.config(state="normal")
+
 def start_game():
 
     global current_card_index
     global score
+    global cards
 
     random.shuffle(cards)
+
+    for deck in deck_list:
+        deck.pack_forget()
 
     score = 0
     current_card_index = 0
@@ -122,10 +162,19 @@ def start_game():
     show_card()
 
 
+deck_list = []
     
 check_button = ttk.Button(root, text="check", command=check_answer)
-start_button = ttk.Button(root, text="START", command= start_game)
+start_button = ttk.Button(root, text="START", command= start_game, state= "disabled")
 show_button = ttk.Button(root, text="reveal answer", command=show_answer)
+
+manager = DeckManager()
+selected_deck = tk.StringVar()
+
+for deck in manager.decks:
+    rb = ttk.Radiobutton(root, text=deck.title, value=deck.title, variable=selected_deck, command=selection)
+    rb.pack()
+    deck_list.append(rb)
 
 start_button.pack(pady=40, padx=50, anchor="center")
 
