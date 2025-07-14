@@ -1,7 +1,9 @@
 import tkinter as tk
 import random
 from tkinter import messagebox, filedialog
-from tkinter import ttk
+from tkinter import ttk 
+import json 
+import os
 
 class Card:
     def __init__(self, question, answer):
@@ -29,19 +31,38 @@ cards2 = [
 ]
 
 class Deck:
-    def __init__(self, title, category, cards):
+    def __init__(self, title, cards):
         self.title = title
-        self.category = category
         self.cards = cards
 
 
-deck1 = Deck("Rando", None, cards1)
-deck2 = Deck("Rap", "music", cards2)
+#deck1 = Deck("Rando", None, cards1)
+#deck2 = Deck("Rap", "music", cards2)
 
     
 class DeckManager:
     def __init__(self):
-        self.decks = [deck1, deck2]
+        self.decklist = []
+
+    def load_decks(self):
+        path = os.path.join(os.path.dirname(__file__), "Decks")        
+        for file in os.listdir(path):
+            if file.endswith(".json"):
+                file_path = os.path.join(path, file)
+                with open(file_path, "r") as f:
+                    card_data = json.load(f)
+                    deck_data = []
+                    for question, answer in card_data:
+                        card = Card(question, answer)
+                        deck_data.append(card)
+                self.decklist.append(deck_data)
+                        
+                                
+                                
+
+
+
+
 
 
 root = tk.Tk()
@@ -58,6 +79,8 @@ current_card_index = 0
 score = 0
 highscore = 0
 cards = None
+
+
 
 
 def show_card():
@@ -83,6 +106,7 @@ def show_result():
     highscore_label = ttk.Label(text=f"Highscore: {highscore}")
     highscore_label.pack(pady=34, side="bottom")
 
+
 def show_answer():
 
     global current_card_index
@@ -104,6 +128,7 @@ def check_answer():
     correct = cards[current_card_index].answer
 
     user_input.delete(0, tk.END)
+    show_button.pack_forget()
 
     if answer.strip().lower() == correct.strip().lower():
         messagebox.showinfo("CORRECT", "Right you are!")
@@ -127,7 +152,7 @@ def next_question():
         card_label.config(text="")
 
         if score == 10:
-            messagebox.showinfo("PERFECT", "You fucking nailed it mate!!!!")
+            messagebox.showinfo("PERFECT", "You nailed it mate!!!!")
             show_result()
         else:
             messagebox.showinfo("DONE", "That's all for tongight folks!")
@@ -139,7 +164,7 @@ def selection(*args):
     global cards
     
     title = selected_deck.get()
-    for deck in manager.decks:
+    for deck in manager.decklist:
         if title == deck.title:
             cards = deck.cards
 
@@ -153,7 +178,7 @@ def start_game():
 
     random.shuffle(cards)
 
-    for deck in deck_list:
+    for deck in deck_menu:
         deck.pack_forget()
 
     score = 0
@@ -162,7 +187,7 @@ def start_game():
     show_card()
 
 
-deck_list = []
+deck_menu = []
     
 check_button = ttk.Button(root, text="check", command=check_answer)
 start_button = ttk.Button(root, text="START", command= start_game, state= "disabled")
@@ -171,14 +196,17 @@ show_button = ttk.Button(root, text="reveal answer", command=show_answer)
 manager = DeckManager()
 selected_deck = tk.StringVar()
 
-for deck in manager.decks:
+for deck in manager.decklist:
     rb = ttk.Radiobutton(root, text=deck.title, value=deck.title, variable=selected_deck, command=selection)
     rb.pack()
-    deck_list.append(rb)
+    deck_menu.append(rb)
 
 start_button.pack(pady=40, padx=50, anchor="center")
 
+manager.load_decks()
+
 root.mainloop()
+
 
 
 
