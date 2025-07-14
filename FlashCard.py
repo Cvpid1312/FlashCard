@@ -52,10 +52,14 @@ class DeckManager:
                 with open(file_path, "r") as f:
                     card_data = json.load(f)
                     deck_data = []
-                    for question, answer in card_data:
+                    for card_dict in card_data:
+                        question = card_dict["question"]
+                        answer = card_dict["answer"]
                         card = Card(question, answer)
                         deck_data.append(card)
-                self.decklist.append(deck_data)
+                    title = os.path.splitext(file)[0]
+                self.decklist.append(Deck(title, deck_data))
+            
                         
                                 
                                 
@@ -196,6 +200,8 @@ show_button = ttk.Button(root, text="reveal answer", command=show_answer)
 manager = DeckManager()
 selected_deck = tk.StringVar()
 
+manager.load_decks()
+
 for deck in manager.decklist:
     rb = ttk.Radiobutton(root, text=deck.title, value=deck.title, variable=selected_deck, command=selection)
     rb.pack()
@@ -203,7 +209,6 @@ for deck in manager.decklist:
 
 start_button.pack(pady=40, padx=50, anchor="center")
 
-manager.load_decks()
 
 root.mainloop()
 
